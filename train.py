@@ -25,7 +25,7 @@ agent_reinforce = agent.get_agent(environment, 'reinforce', "without_noise_train
 tf_dumm.close()
 train_results = agent.train(tf_dumm, agent_reinforce)
 env_noisy = QiskitEnv(np.array([0,1]),num_intervals,interval_width)
-vector,fid, action = agent.evaluate(agent_reinforce, env_noisy)
+vector, fid, action, pulse_prog = agent.evaluate(agent_reinforce, env_noisy)
 policy_dir = "policy"
 tf_policy_saver = policy_saver.PolicySaver(agent_reinforce.policy)
 tf_policy_saver.save(policy_dir)
