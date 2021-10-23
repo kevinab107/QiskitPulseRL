@@ -1,0 +1,7 @@
+tensorflow==2.6.0
+numpy==1.19.5
+protobuf==3.18.1
+tf-agents==0.10.0
+qiskit==0.31.0
+
+
