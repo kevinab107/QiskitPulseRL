@@ -46,11 +46,11 @@ class QiskitEnv(py_environment.PyEnvironment):
     to the expected final state"""
 
     def __init__(self,
-                 initial_state, max_stamp):
+                 initial_state, max_time_steps, interval_width):
 
         #action spec which is the shape of the action. Here it is (1,) ie the pulse length                 
         self._action_spec = array_spec.BoundedArraySpec(
-            shape=(1,), dtype=np.int, minimum=10, maximum=1000, name='action')
+            shape=(1,), dtype=np.float32, minimum=0, maximum=1, name='action')
         #Observation spec which is the shape of the observation. It is of the form [real part of |0>, imag part of |0>, real part of |1>, imag part of |1>]
         self._observation_spec = array_spec.BoundedArraySpec(
             shape=(4,), dtype=np.float32, minimum=0,maximum=1, name='observation')
@@ -64,14 +64,17 @@ class QiskitEnv(py_environment.PyEnvironment):
         #intial state is [1,0]
         self.initial_state = initial_state
         #Maximum time steps
-        self.max_stamp = max_stamp
-
+        self.max_stamp = max_time_steps
+        self.interval_width = interval_width
+        self.actions_list = []
 
     def action_spec(self):
         return self._action_spec
 
     def observation_spec(self):
         return self._observation_spec
+    def render(self):
+        return self.fidelity
 
     def _reset(self):
         """
@@ -81,6 +84,7 @@ class QiskitEnv(py_environment.PyEnvironment):
         self.fidelity = 0
         self.time_stamp = 0
         self.max_fidelity = 0
+        self.actions_list = []
         #self.gamma = [random.uniform(0, 1), random.uniform(0, 1)]
         return ts.restart(np.array([0,0,1,0], dtype=np.float32))
 
@@ -107,6 +111,7 @@ class QiskitEnv(py_environment.PyEnvironment):
 
         if self._episode_ended:
             self.max_fidelity = 0
+            self.actions_list = []
             return ts.termination(np.array([0,0,1,0], dtype=np.float32), 0)
 
         #Get the new state and fidelity
@@ -130,14 +135,21 @@ class QiskitEnv(py_environment.PyEnvironment):
 
         else:
             return ts.transition(
-                np.array(observation, dtype=np.float32), reward=reward, discount=0.9)
+                np.array(observation, dtype=np.float32), reward=reward)
 
   
 
-    def get_transition_fidelity(self,width):
+    def get_transition_fidelity(self,amplitude):
         """
         Build the pulse based on the action and invoke a IBM Q backend and run the experiment.Simulator is used 
-        here.  
+        here. 
+        1. Divide the pulse schedule into discrete intervals of constant length. (Piecewise Constants)
+
+        2. Build a pulse schedule with qiskit pulse with amplitude for each interval of the pulse as an input.  
+        The schedule is then a function of amplitude of the pulse, followed by a measurement at the end of the drive. 
+        
+        3. At each time step all the all the pulse amplitudes derived till the time step is used. This is contained in the 
+           actions_list. actions_list is reset after a single episode
         """
         armonk_backend = FakeArmonk()
         freq_est = 4.97e9
@@ -150,15 +162,16 @@ class QiskitEnv(py_environment.PyEnvironment):
         armonk_backend.configuration().dt = 2.2222222222222221e-10
         armonk_model = PulseSystemModel.from_backend(armonk_backend)
 
-        width = int(width)
+        self.actions_list += [amplitude]
         #build the pulse 
         with pulse.build(name='pulse_programming_in', backend =  armonk_backend ) as pulse_prog:
 
                 dc = pulse.DriveChannel(0)
                 ac = pulse.acquire_channel(0)
 
-                pulse.play([1]*width +[0]*width  , dc)
-                pulse.delay(width + 10, ac)
+                for action in self.actions_list:
+                    pulse.play([action]*self.interval_width, dc)
+                pulse.delay(self.interval_width*len(self.actions_list) + 10, ac)
                 mem_slot = pulse.measure(0)
 
         #Simulate the pulse 
@@ -175,44 +188,51 @@ class QiskitEnv(py_environment.PyEnvironment):
     # if __name__ == "__main__":
     #     environment =  QiskitEnv(np.array([0,1]),100)
     #     validate_py_environment(environment, episodes=5)
+    
+    def get_state(self,actions):
+        """
+        Build the pulse based on the action and invoke a IBM Q backend and run the experiment.Simulator is used 
+        here.  
+        """
+        armonk_backend = FakeArmonk()
+        freq_est = 4.97e9
+        drive_est = 6.35e7
+        armonk_backend.defaults().qubit_freq_est = [freq_est]
+        #Define the hamiltonian to avoid randomness
+        armonk_backend.configuration().hamiltonian['h_str']= ['wq0*0.5*(I0-Z0)', 'omegad0*X0||D0']
+        armonk_backend.configuration().hamiltonian['vars'] = {'wq0': 2 * np.pi * freq_est, 'omegad0': drive_est}
+        armonk_backend.configuration().hamiltonian['qub'] = {'0': 2}
+        armonk_backend.configuration().dt = 2.2222222222222221e-10
+        armonk_model = PulseSystemModel.from_backend(armonk_backend)
+
+        #build the pulse 
+        with pulse.build(name='pulse_programming_in', backend =  armonk_backend ) as pulse_prog:
+
+                dc = pulse.DriveChannel(0)
+                ac = pulse.acquire_channel(0)
+
+                for action in actions:
+                    pulse.play([action]*self.interval_width, dc)
+                pulse.delay(self.interval_width*len(self.actions_list) + 10, ac)
+                mem_slot = pulse.measure(0)
+
+        #Simulate the pulse 
+        backend_sim = PulseSimulator(system_model=armonk_model)
+        qobj = assemble(pulse_prog,
+                                backend=backend_sim,
+                                meas_return='avg',
+                                shots=512)
+        sim_result = backend_sim.run(qobj).result()
+        vector = sim_result.get_statevector()
+        fid = state_fidelity(np.array([0,1]), vector)
+        pulse_prog.draw()
+        return fid,vector,pulse_prog
+    
     @staticmethod
     def get_tf_environment(max_step):
         """Return the tenforflow environemnt of the python  environment """
-        py_env = QiskitEnv(np.array([1,0]),2)
+        py_env = QiskitEnv(np.array([1,0]),5, 100)
         tf_env = tf_py_environment.TFPyEnvironment(py_env)
         return tf_env
 
-    @staticmethod
-    def get_state(width):
-            
-            #intiial state is fixed as of now to |0>
-            armonk_backend = FakeArmonk()
-            freq_est = 4.97e9
-            drive_est = 6.35e7
-            armonk_backend.defaults().qubit_freq_est = [freq_est]
-            armonk_backend.configuration().hamiltonian['h_str']= ['wq0*0.5*(I0-Z0)', 'omegad0*X0||D0']
-            armonk_backend.configuration().hamiltonian['vars'] = {'wq0': 2 * np.pi * freq_est, 'omegad0': drive_est}
-            armonk_backend.configuration().hamiltonian['qub'] = {'0': 2}
-            armonk_backend.configuration().dt = 2.2222222222222221e-10
-            armonk_model = PulseSystemModel.from_backend(armonk_backend)
-
-            width = int(width)
-            with pulse.build(name='pulse_programming_in', backend =  armonk_backend ) as pulse_prog:
-
-                    dc = pulse.DriveChannel(0)
-                    ac = pulse.acquire_channel(0)
-
-                    pulse.play([1]*width +[0]*width  , dc)
-                    pulse.delay(width + 10, ac)
-                    mem_slot = pulse.measure(0)
-        
-            backend_sim = PulseSimulator(system_model=armonk_model)
-            qobj = assemble(pulse_prog,
-                                    backend=backend_sim,
-                                    meas_return='avg',
-                                    shots=512)
-            sim_result = backend_sim.run(qobj).result()
-            vector = sim_result.get_statevector()
-            fid = state_fidelity(np.array([0,1]), vector)
-            return fid, vector
 

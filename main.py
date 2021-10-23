@@ -5,44 +5,31 @@ from tf_agents import policies
 from environment import QiskitEnv
 import warnings
 import logging, sys
+from tf_agents.environments import tf_py_environment
 
 
-def load_best_policy():
-  policy_dir = "best_policy"
-  # saved_policy = load(policy_dir)
-  # print(saved_policy.action())
-  converter = tf.lite.TFLiteConverter.from_saved_model(policy_dir, signature_keys=["action"])
-  converter.target_spec.supported_ops = [
-    tf.lite.OpsSet.TFLITE_BUILTINS, # enable TensorFlow Lite ops.
-    tf.lite.OpsSet.SELECT_TF_OPS # enable TensorFlow ops.
-  ]
-  tflite_policy = converter.convert()
-  with open('policy.tflite', 'wb') as f:
-    f.write(tflite_policy)
+def evaluate(policy, eval_py_env):
+        eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
+        num_episodes = 1
+        fidelity = []
+        actions = []
+        for _ in range(num_episodes):
+            time_step = eval_env.reset()
+            while not time_step.is_last():
+                action_step = policy.action(time_step)
+                time_step = eval_env.step(action_step.action)
+                actions.append(action_step.action)
+        fidelity,state, pulse_prog = eval_py_env.get_state(actions)
+        return state, fidelity, actions,pulse_prog
 
-
-  interpreter = tf.lite.Interpreter("policy.tflite")
-
-  policy_runner = interpreter.get_signature_runner()
-
-  action = policy_runner(**{
-      '0/discount':tf.constant(0.0),
-      '0/observation':tf.zeros([1,4]),
-      '0/reward':tf.constant(0.0),
-      '0/step_type':tf.constant(0)})["action"][0][0]
-  
-  print("\n\n\n\nPulse length : ",action)
-  print("Showing the results of the best policy")
-  fid, vector = QiskitEnv.get_state(int(action))
-  print("Fidelity : ",fid)
-  print("Initial State: ", [1,0])
-  print("Final State: ", vector)
-  print("\n\n")
-  
-
-
-if __name__ == "__main__":
-  logging.disable(sys.maxsize)
-  warnings.simplefilter('ignore')
-  load_best_policy()
+env_test = QiskitEnv(np.array([0,1]),5,100)
+policy_dir = "best_policy"
+saved_policy = load(policy_dir)
+state, fidelity, actions,pulse_prog =  evaluate(saved_policy,env_test)    
+print("Showing the results of the best policy")
+print("Fidelity : ",fidelity)
+print("Initial State: ", [1,0])
+print("Final State: ", state)
+print("\n\n")
+pulse_prog.draw()
   

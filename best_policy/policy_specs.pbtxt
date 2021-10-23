@@ -22,7 +22,7 @@ dict_value {
               name: "observation"
               shape {
                 dim {
-                  size: 1
+                  size: 4
                 }
               }
               dtype: DT_FLOAT
@@ -51,18 +51,18 @@ dict_value {
                   size: 1
                 }
               }
-              dtype: DT_INT64
+              dtype: DT_FLOAT
               minimum {
-                dtype: DT_INT64
+                dtype: DT_FLOAT
                 tensor_shape {
                 }
-                int64_val: 10
+                float_val: 0.0
               }
               maximum {
-                dtype: DT_INT64
+                dtype: DT_FLOAT
                 tensor_shape {
                 }
-                int64_val: 1000
+                float_val: 1.0
               }
             }
           }

@@ -97,22 +97,21 @@ class Agent():
         return self.get_reinforce_agent(env, name)
 
     def compute_avg_return(self,environment, policy, num_episodes=10):
-        #Compute the average fidelity of a num_episodes of experiments
+
         total_return = 0.0
         for _ in range(num_episodes):
 
             time_step = environment.reset()
             episode_return = 0.0
 
-            
-            action_step = policy.action(time_step)
-            time_step = environment.step(action_step.action)
-            episode_return += time_step.reward
-            print(_, time_step.observation[0], time_step.reward)
+            while not time_step.is_last():
+                action_step = policy.action(time_step)
+                time_step = environment.step(action_step.action)
+                episode_return += time_step.reward
+                print(_, time_step.observation[0],time_step.reward)
             total_return += episode_return
 
         avg_return = total_return / num_episodes
-        print(num_episodes)
         return avg_return.numpy()[0]
 
     def collect_episode(self,environment, replay_buffer, policy, num_episodes):
@@ -191,12 +190,17 @@ class Agent():
         plt.xlabel("Step")
         plt.ylim(top=2)
 
-    def evaluate(self,tf_agent, eval_py_env):
-        """Evaluate the agents policy got after training phse"""
+    def evaluate(self, tf_agent, eval_py_env):
         eval_env = tf_py_environment.TFPyEnvironment(eval_py_env)
-        time_step = eval_env.reset()
-        action_step = tf_agent.policy.action(time_step)
-        time_step = eval_env.step(action_step.action)
-        fid, state = eval_py_env.get_state(action_step.action)
-        return action_step.action,fid, state
+        num_episodes = 1
+        fidelity = []
+        actions = []
+        for _ in range(num_episodes):
+            time_step = eval_env.reset()
+            while not time_step.is_last():
+                action_step = tf_agent.policy.action(time_step)
+                time_step = eval_env.step(action_step.action)
+                actions.append(action_step.action)
+        fidelity,state, pulse_prog = eval_py_env.get_state(actions)
+        return state, fidelity, actions,pulse_prog
 
