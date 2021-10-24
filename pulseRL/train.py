@@ -5,8 +5,8 @@ from tf_agents.environments import tf_py_environment
 from tf_agents.policies import policy_saver
 from qiskit.visualization import plot_bloch_multivector
 
-from agent import Agent
-from environment import QiskitEnv
+from pulseRL.agent import Agent
+from pulseRL.environment import QiskitEnv
 
 # Learning Parameters
 num_iterations = 10  # @param {type:"integer"}

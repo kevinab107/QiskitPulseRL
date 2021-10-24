@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.saved_model import load
 from tf_agents import policies
 
-from environment import QiskitEnv
+from pulseRL.environment import QiskitEnv
 from tf_agents.environments import tf_py_environment
 
 
