@@ -37,4 +37,5 @@ setup(
     python_requires=REQUIRES_PYTHON,
     install_requires=DEPENDENCIES,
     entry_points={"console_scripts": ["pulseRL=bin.__main__:main"]},
+    packages = ['pulseRL']
 )
