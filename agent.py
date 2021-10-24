@@ -16,6 +16,7 @@ import tensorflow as tf
 from tf_agents.agents.reinforce import reinforce_agent
 import numpy
 from tf_agents.policies.policy_saver import PolicySaver
+import tensorflow_addons as tfa
 
 import matplotlib as plt
 
@@ -45,7 +46,7 @@ from tf_agents.utils import common
 from environment import QiskitEnv
 
 
-class Agent():
+class Agent:
     """docstring for ClassName"""
 
     def __init__(
@@ -56,29 +57,35 @@ class Agent():
         learning_rate,
         num_eval_episodes,
         eval_interval,
+        num_intervals,
+        interval_length,
     ):
         # Learning Parameters
         self.num_iterations = num_iterations  # @param {type:"integer"}
-        self.collect_episodes_per_iteration =collect_episodes_per_iteration  # @param {type:"integer"}
+        self.collect_episodes_per_iteration = (
+            collect_episodes_per_iteration  # @param {type:"integer"}
+        )
         # for ddpg max repaly = 2
         self.replay_buffer_capacity = replay_buffer_capacity  # @param {type:"integer"}
 
-        self.learning_rate = learning_rate # @param {type:"number"}
-        self.num_eval_episodes =num_eval_episodes # @param {type:"integer"}
+        self.learning_rate = learning_rate  # @param {type:"number"}
+        self.num_eval_episodes = num_eval_episodes  # @param {type:"integer"}
         self.eval_interval = eval_interval  # @param {type:"integer"}
+        self.num_intervals = num_intervals
+        self.interval_length = interval_length
 
-    def get_reinforce_agent(self,spin_py_environment, name):
-        
-        #Get the train env from the python environment QiskitEnv
+    def get_reinforce_agent(self, spin_py_environment, name):
+
+        # Get the train env from the python environment QiskitEnv
         train_env = tf_py_environment.TFPyEnvironment(spin_py_environment)
-        #Define the learning neural network
+        # Define the learning neural network
         actor_net = actor_distribution_network.ActorDistributionNetwork(
             train_env.observation_spec(), train_env.action_spec()
         )
-        #Define the optimizer
+        # Define the optimizer
         optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-        
-        #Get the reinforcment Learning Agent
+
+        # Get the reinforcment Learning Agent
         name = name + "_reinforce"
         tf_agent = reinforce_agent.ReinforceAgent(
             train_env.time_step_spec(),
@@ -93,10 +100,10 @@ class Agent():
 
         return tf_agent
 
-    def get_agent(self,env, agent_type, name):
+    def get_agent(self, env, agent_type, name):
         return self.get_reinforce_agent(env, name)
 
-    def compute_avg_return(self,environment, policy, num_episodes=10):
+    def compute_avg_return(self, environment, policy, num_episodes=10):
 
         total_return = 0.0
         for _ in range(num_episodes):
@@ -108,13 +115,13 @@ class Agent():
                 action_step = policy.action(time_step)
                 time_step = environment.step(action_step.action)
                 episode_return += time_step.reward
-                print(_, time_step.observation[0],time_step.reward)
+                print(_, time_step.observation[0], time_step.reward)
             total_return += episode_return
 
         avg_return = total_return / num_episodes
         return avg_return.numpy()[0]
 
-    def collect_episode(self,environment, replay_buffer, policy, num_episodes):
+    def collect_episode(self, environment, replay_buffer, policy, num_episodes):
         """
         In an iteration multiple episodes are collected together and a trajectory is built out of it.
         Later these trajectory is used for learning. Trajectory is added to a replay buffer.
@@ -135,8 +142,7 @@ class Agent():
             if traj.is_boundary():
                 episode_counter += 1
 
-    def train(self,dummy_env, tf_agent):
-
+    def train(self, dummy_env, tf_agent):
 
         replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=tf_agent.collect_data_spec,
@@ -154,7 +160,9 @@ class Agent():
 
         for _ in range(self.num_iterations):
 
-            train_env = QiskitEnv.get_tf_environment(10)
+            train_env = QiskitEnv.get_tf_environment(
+                self.num_intervals, self.interval_length
+            )
             self.collect_episode(
                 train_env,
                 replay_buffer,
@@ -169,13 +177,12 @@ class Agent():
 
             step = tf_agent.train_step_counter.numpy()
 
-
             if step % 100 == 0:
                 print("step = {0}: loss = {1}".format(step, train_loss.loss))
 
             if step % self.eval_interval == 0:
 
-                eval_env = QiskitEnv.get_tf_environment(10)
+                eval_env = QiskitEnv.get_tf_environment(self.num_intervals, self.interval_length)
                 avg_return = self.compute_avg_return(
                     eval_env, tf_agent.policy, self.num_eval_episodes
                 )
@@ -201,6 +208,5 @@ class Agent():
                 action_step = tf_agent.policy.action(time_step)
                 time_step = eval_env.step(action_step.action)
                 actions.append(action_step.action)
-        fidelity,state, pulse_prog = eval_py_env.get_state(actions)
-        return state, fidelity, actions,pulse_prog
-
+        fidelity, state, pulse_prog = eval_py_env.get_state(actions)
+        return state, fidelity, actions, pulse_prog
