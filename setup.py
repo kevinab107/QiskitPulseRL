@@ -22,7 +22,6 @@ DEPENDENCIES = [
 ]
 
 
-
 setup(
     name=NAME,
     version=VERSION,
