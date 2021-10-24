@@ -1,9 +1,11 @@
+import abc
+import numpy as np
+import math
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-import math
 from qiskit.quantum_info import state_fidelity
 from qiskit.pulse import DriveChannel
 from qiskit.compiler import assemble
@@ -19,9 +21,7 @@ from qiskit.providers.aer.pulse import PulseSystemModel
 # Mock Armonk backend
 from qiskit.test.mock.backends.armonk.fake_armonk import FakeArmonk
 
-import abc
 import tensorflow as tf
-import numpy as np
 from tf_agents.environments import py_environment
 from tf_agents.environments import tf_environment
 from tf_agents.environments import tf_py_environment
@@ -30,15 +30,13 @@ from tf_agents.specs import array_spec
 from tf_agents.environments import wrappers
 from tf_agents.environments import suite_gym
 from tf_agents.trajectories import time_step as ts
-import math
-
 from tf_agents.environments import validate_py_environment
 
 
 class QiskitEnv(py_environment.PyEnvironment):
-    """Environemnt which make use of Qiskit Pulse Simulator and pulse builder to simulate
+    """Environment which make use of Qiskit Pulse Simulator and pulse builder to simulate
     the dynamics of a qubit under the influence of a pulse. The RL agent interact with this
-    environmentthrough action defined as pulse lenght. Here a constant pulse of amplitude 1
+    environment through action defined as pulse length. Here a constant pulse of amplitude 1
     is used and applied for a time "pulse width". "pulse width" is the action that the agent
     takes here. The agent observes the state obtained with the action along with the Fidelity
     to the expected final state"""
@@ -60,7 +58,7 @@ class QiskitEnv(py_environment.PyEnvironment):
         # Time stamp
         self.time_stamp = 0
         self.max_fidelity = 0
-        # intial state is [1,0]
+        # initial state is [1,0]
         self.initial_state = initial_state
         # Maximum time steps
         self.max_stamp = max_time_steps
@@ -78,7 +76,7 @@ class QiskitEnv(py_environment.PyEnvironment):
 
     def _reset(self):
         """
-        reset the state. Tesnforflow provides the state restart()
+        reset the state. tensorflow provides the state restart()
         """
         self._episode_ended = False
         self.fidelity = 0
@@ -92,7 +90,7 @@ class QiskitEnv(py_environment.PyEnvironment):
         """
         Result of interaction by agent with the environment.
         action is the pulse length
-        Returns one of the the tensorflow state which has the observation and
+        Returns one of the tensorflow state which has the observation and
         reward information corresponding to the action
                       - termination (If the interaction has stopped due to max timesteps)
                       - transition (Transition from one state to another)
@@ -244,7 +242,7 @@ class QiskitEnv(py_environment.PyEnvironment):
 
     @staticmethod
     def get_tf_environment(max_step, interval_width):
-        """Return the tenforflow environemnt of the python  environment"""
+        """Return the tensorflow environment of the python environment"""
         py_env = QiskitEnv(np.array([1, 0]), max_step, interval_width)
         tf_env = tf_py_environment.TFPyEnvironment(py_env)
         return tf_env

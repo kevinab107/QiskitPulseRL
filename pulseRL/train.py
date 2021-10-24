@@ -1,10 +1,12 @@
-from environment import QiskitEnv
 import numpy as np
-from tf_agents.environments import tf_py_environment
-from agent import Agent
-from qiskit.visualization import plot_bloch_multivector
 import matplotlib as plt
+
+from tf_agents.environments import tf_py_environment
 from tf_agents.policies import policy_saver
+from qiskit.visualization import plot_bloch_multivector
+
+from agent import Agent
+from environment import QiskitEnv
 
 # Learning Parameters
 num_iterations = 10  # @param {type:"integer"}
@@ -35,7 +37,8 @@ agent_reinforce = agent.get_agent(environment, "reinforce", "without_noise_train
 tf_dumm.close()
 train_results = agent.train(tf_dumm, agent_reinforce)
 env_noisy = QiskitEnv(np.array([0, 1]), num_intervals, interval_width)
-vector, fid, action,pulse_prog = agent.evaluate(agent_reinforce, env_noisy)
+vector, fid, action, pulse_prog = agent.evaluate(agent_reinforce, env_noisy)
+
 policy_dir = "policy"
 tf_policy_saver = policy_saver.PolicySaver(agent_reinforce.policy)
 tf_policy_saver.save(policy_dir)
