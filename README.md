@@ -9,8 +9,11 @@ requires python 3.7 to avoid dependancy issues with tensorflow
 pip install -r requirements.txt
 
 if you get any error regarding thread pool you might want to do the following: 
+
 !pip3 uninstall protobuf --yes
+
 !pip3 uninstall python-protobuf --yes
+
 !pip install protobuf 
 
 Alternatively can use the PulseRL-Devo notebook
