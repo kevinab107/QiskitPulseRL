@@ -1,11 +1,8 @@
 # QiskitPulseRL
 
-____________________________________________________________________________________________________________________________________
-____________________________________________________________________________________________________________________________________
-
 ## Description
 
-The  sequence of pulses used for the control of qubits for a unitary operation can vary from the hardware depending on the Rabi frequency, relative detuning, process time, spin relaxation factor and decoherence factor.
+The sequence of pulses used for the control of qubits for a unitary operation can vary from the hardware depending on the Rabi frequency, relative detuning, process time, spin relaxation factor and decoherence factor.
 
 The problem statement is as follows:
 
@@ -19,7 +16,7 @@ The problem statement is as follows:
 The training of the RL agent can be done with a simulator and existing hardware for a specific unitary operation. (Starting with single qubit operations).
 
 ## Installation
-Use the PulseRL-Devo Jupyter notebook or alternatively install by running
+**Use the PulseRL-Devo Jupyter notebook** or alternatively install by running
 ```
 pip install -r requirements.txt
 pip install .
@@ -34,4 +31,4 @@ If you get any error regarding thread pool you might want to do the following:
 !pip install protobuf 
 ```
 
-TODO: Currently the projects setup.py has issues with managing dependancies. Fix and provide commands for "training", "load best policy".
+TODO: Currently the projects setup.py has issues with managing dependencies. Fix and provide commands for "training", "load best policy".
