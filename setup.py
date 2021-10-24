@@ -8,7 +8,7 @@ fv.close()
 NAME = "pulseRL"
 DESCRIPTION = "RL algorithm for quantum control"
 URL = "https://github.com/kevinab107/QiskitPulseRL"
-REQUIRES_PYTHON = "==3.7"
+REQUIRES_PYTHON = ">=3.7"
 
 AUTHOR = "Kevin Arbaham"
 AUTHOR_EMAIL = "kevinab107@gmail.com"
