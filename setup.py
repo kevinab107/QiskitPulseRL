@@ -13,6 +13,8 @@ REQUIRES_PYTHON = ">=3.7"
 AUTHOR = "Kevin Arbaham"
 AUTHOR_EMAIL = "kevinab107@gmail.com"
 
+VERSION = '0.1'
+
 DEPENDENCIES = [
     "tensorflow==2.6.0",
     "numpy==1.19.5",
