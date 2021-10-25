@@ -34,4 +34,4 @@ If you get any error regarding thread pool you might want to do the following:
 TODO: Currently the projects setup.py has issues with managing dependencies. Fix and provide commands for "training", "load best policy".
 
 ## Prior work
-based on existing project, see: https://github.com/kevinab107/QiskitPulseRL/commit/05956333c201db050b1e8ec1c1c9890c4ab6c17d
+based on existing project, see: https://github.com/kevinab107/QuantumControl
