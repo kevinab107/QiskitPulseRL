@@ -8,10 +8,12 @@ fv.close()
 NAME = "pulseRL"
 DESCRIPTION = "RL algorithm for quantum control"
 URL = "https://github.com/kevinab107/QiskitPulseRL"
-REQUIRES_PYTHON = "==3.7"
+REQUIRES_PYTHON = ">=3.7"
 
 AUTHOR = "Kevin Arbaham"
 AUTHOR_EMAIL = "kevinab107@gmail.com"
+
+VERSION = '0.1'
 
 DEPENDENCIES = [
     "tensorflow==2.6.0",
@@ -37,4 +39,5 @@ setup(
     python_requires=REQUIRES_PYTHON,
     install_requires=DEPENDENCIES,
     entry_points={"console_scripts": ["pulseRL=bin.__main__:main"]},
+    packages = ['pulseRL']
 )

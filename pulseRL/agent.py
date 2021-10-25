@@ -1,6 +1,15 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+
+import abc
+import numpy as np
+import tf_agents
+import math
+import matplotlib as plt
+
+import tensorflow as tf
+
 import tf_agents
 from tf_agents.agents.dqn import dqn_agent
 from tf_agents.drivers import dynamic_step_driver
@@ -12,19 +21,10 @@ from itertools import combinations
 from tf_agents.environments.parallel_py_environment import ParallelPyEnvironment
 from tf_agents.networks import actor_distribution_network
 from tf_agents.trajectories import trajectory
-import tensorflow as tf
 from tf_agents.agents.reinforce import reinforce_agent
 import numpy
 from tf_agents.policies.policy_saver import PolicySaver
 import tensorflow_addons as tfa
-
-import matplotlib as plt
-
-import abc
-import tensorflow as tf
-import numpy as np
-import tf_agents
-import math
 from tf_agents.environments import py_environment
 from tf_agents.environments import tf_environment
 from tf_agents.environments import tf_py_environment
@@ -32,7 +32,6 @@ from tf_agents.environments import utils
 from tf_agents.specs import array_spec
 from tf_agents.environments import wrappers
 from tf_agents.trajectories import time_step as ts
-
 from tf_agents.agents.reinforce import reinforce_agent
 from tf_agents.drivers import dynamic_step_driver
 from tf_agents.environments import suite_gym
@@ -43,7 +42,8 @@ from tf_agents.networks import actor_distribution_network
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.trajectories import trajectory
 from tf_agents.utils import common
-from environment import QiskitEnv
+
+from pulseRL.environment import QiskitEnv
 
 
 class Agent:
