@@ -1,3 +1,10 @@
+-----
+
+_(this project was a submission for the [Munich Quantum Hackathon](https://qiskitfallfest.hypeinnovation.com/servlet/hype/IMT?documentTableId=396317851978803616&userAction=Browse&templateName=&documentId=616a8e9879f6c27b7d5a68341f69e231), which was part of the Qiskit Fall Fest and organised by PushQuantum)_
+
+-----
+
+
 # QiskitPulseRL
 
 ## Description
