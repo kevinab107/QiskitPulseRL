@@ -35,3 +35,8 @@ TODO: Currently the projects setup.py has issues with managing dependencies. Fix
 
 ## Prior work
 based on existing project, see: https://github.com/kevinab107/QuantumControl
+
+## Resources
+1. Reinforcement laerning and optimal control (Prof. Dimitri P. Bertsekas)
+2. Universal quantum control through deep reinforcement learning, Murphy Yuezhen Niu, Sergio Boixo, Vadim N. Smelyanskiy & Hartmut Neven
+3. Reinforcement Learning in Different Phases of Quantum Control, Marin Bukov, Alexandre G.R. Day, Dries Sels, Phillip Weinberg, Anatoli Polkovnikov and Pankaj Mehta1
